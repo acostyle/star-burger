@@ -1,10 +1,9 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-import json
 
 from .models import Order
 from .models import OrderedProduct
@@ -63,12 +62,28 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
+    order = request.data
     try:
-        order = request.data
-    except ValueError:
-        return JsonResponse({
-            'error': 'Ошибка! Попробуйте оформить заказ снова.',
-        })
+        products = order['products']
+    except KeyError:
+        return Response(
+            {'error': 'products: Это поле обязательное!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if isinstance(products, str):
+        return Response(
+            {'error': 'products: Ожидался list со значениями, но был получен "str"'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    elif isinstance(products, list):
+        return Response(
+            {'error': 'products: Этот список не может быть пустым'}
+        )
+    elif products is None:
+        return Response(
+            {'error': 'products: Это поле не может быть пустым.'}
+        )
     
     obj = Order.objects.create(
         first_name = order['firstname'],
@@ -83,6 +98,5 @@ def register_order(request):
             product = Product.objects.get(id=product['product']),
             quantity = product['quantity'],
         )
-    
-    print(order)
+
     return Response(order)
