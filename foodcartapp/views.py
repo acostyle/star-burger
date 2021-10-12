@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 import json
 
 from .models import Order
@@ -32,6 +35,7 @@ def banners_list_api(request):
     })
 
 
+@api_view(['GET'])
 def product_list_api(request):
     products = Product.objects.select_related('category').available()
 
@@ -54,15 +58,13 @@ def product_list_api(request):
             }
         }
         dumped_products.append(dumped_product)
-    return JsonResponse(dumped_products, safe=False, json_dumps_params={
-        'ensure_ascii': False,
-        'indent': 4,
-    })
+    return Response(dumped_products)
 
 
+@api_view(['POST'])
 def register_order(request):
     try:
-        order = json.loads(request.body.decode())
+        order = request.data
     except ValueError:
         return JsonResponse({
             'error': 'Ошибка! Попробуйте оформить заказ снова.',
@@ -82,4 +84,5 @@ def register_order(request):
             quantity = product['quantity'],
         )
     
-    return JsonResponse({})
+    print(order)
+    return Response(order)
