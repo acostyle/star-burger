@@ -70,7 +70,7 @@ class OrderedProductSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = OrderedProductSerializer(many=True, allow_empty=False)
+    products = OrderedProductSerializer(many=True, allow_empty=False, write_only=True)
 
     class Meta:
         model = Order
@@ -91,5 +91,6 @@ def register_order(request):
 
     product_fields = serializer.validated_data['products']
     OrderedProduct.objects.bulk_create([OrderedProduct(order=order, **fields) for fields in product_fields])
+    order_serializer = OrderSerializer(order)
 
-    return JsonResponse({})
+    return Response(order_serializer.data)
