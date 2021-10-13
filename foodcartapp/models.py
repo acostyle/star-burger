@@ -5,17 +5,17 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Order(models.Model):
-    first_name = models.CharField(max_length=64, verbose_name='имя')
-    last_name = models.CharField(max_length=64, verbose_name='фамилия')
-    phone_number = PhoneNumberField(verbose_name='номер телефона')
-    delivery_address = models.CharField(max_length=256, verbose_name='адрес доставки')
+    firstname = models.CharField(max_length=64, verbose_name='имя')
+    lastname = models.CharField(max_length=64, verbose_name='фамилия')
+    phonenumber = PhoneNumberField(verbose_name='номер телефона')
+    address = models.CharField(max_length=256, verbose_name='адрес доставки')
 
     class Meta:
         verbose_name = 'заказ клиента'
         verbose_name_plural = 'заказы клиентов'
 
     def __str__(self):
-        return f'{self.first_name} {self.delivery_address}'
+        return f'{self.firstname} {self.address}'
 
 
 class OrderedProduct(models.Model):
