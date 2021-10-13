@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+import phonenumbers
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -63,6 +64,35 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     order = request.data
+    required_fields = ('firstname', 'lastname', 'phonenumber', 'address')
+
+    missing_fields = [field for field in required_fields if field not in order]
+    if missing_fields:
+        return Response(
+            {'{}'.format(', '.join(missing_fields)): 'Обязательное поле.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    null_fields = [field for field in required_fields if order[field] is None or order[field] == '']
+    if null_fields:
+        return Response(
+            {'{}'.format(', '.join(null_fields)): 'Это поле не может быть пустым.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    phonenumber = phonenumbers.parse(order['phonenumber'])
+    if not phonenumbers.is_valid_number(phonenumber):
+        return Response(
+            {'phonenumber': 'Введен некорректный номер телефона.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if isinstance(order['firstname'], list):
+        return Response(
+            {'firstname': 'Not a valid string.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     try:
         products = order['products']
     except KeyError:
@@ -70,19 +100,28 @@ def register_order(request):
             {'error': 'products: Это поле обязательное!'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     if isinstance(products, str):
         return Response(
             {'error': 'products: Ожидался list со значениями, но был получен "str"'},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    elif isinstance(products, list):
+    elif isinstance(products, list) and not products:
         return Response(
-            {'error': 'products: Этот список не может быть пустым'}
+            {'error': 'products: Этот список не может быть пустым'},
+            status=status.HTTP_400_BAD_REQUEST,
         )
     elif products is None:
         return Response(
-            {'error': 'products: Это поле не может быть пустым.'}
+            {'error': 'products: Это поле не может быть пустым.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    last_product_id = Product.objects.last().id
+    if products[0]['product'] > last_product_id:
+        return Response(
+            {'error': 'Недопустимый первичный ключ "{}"'.format(products[0]["product"])},
+            status=status.HTTP_400_BAD_REQUEST,
         )
     
     obj = Order.objects.create(
