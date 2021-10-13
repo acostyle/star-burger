@@ -77,79 +77,19 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'products', 'firstname', 'lastname', 'phonenumber', 'address']
 
 
-""" def validate(data):
-    errors = []
-    required_fields = ('firstname', 'lastname', 'phonenumber', 'address')
-
-    missing_fields = [field for field in required_fields if field not in data]
-    if missing_fields:
-        errors.append(
-            {'{}'.format(', '.join(missing_fields)): 'Обязательное поле.'}
-            )
-
-    null_fields = [field for field in required_fields if data[field] is None or data[field] == '']
-    if null_fields:
-        errors.append(
-            {'{}'.format(', '.join(null_fields)): 'Это поле не может быть пустым.'}
-            )
-
-    phonenumber = phonenumbers.parse(data['phonenumber'])
-    if not phonenumbers.is_valid_number(phonenumber):
-        errors.append(
-            {'phonenumber': 'Введен некорректный номер телефона.'}
-            )
-    
-    if isinstance(data['firstname'], list):
-        errors.append(
-            {'firstname': 'Not a valid string.'}
-            )
-
-    try:
-        products = data['products']
-    except KeyError:
-        errors.append(
-            {'error': 'products: Это поле обязательное!'}
-            )
-
-    if isinstance(products, str):
-        errors.append(
-            {'error': 'products: Ожидался list со значениями, но был получен "str"'}
-        )
-    elif isinstance(products, list) and not products:
-        errors.append(
-            {'error': 'products: Этот список не может быть пустым'}
-        )
-    elif products is None:
-        errors.append(
-            {'error': 'products: Это поле не может быть пустым.'}
-        )
-
-    last_product_id = Product.objects.last().id
-    if type(products) == list and products[0]['product'] > last_product_id:
-        errors.append(
-            {'error': 'Недопустимый первичный ключ "{}"'.format(products[0]["product"])}
-        )
-    
-    if errors:
-        raise ValidationError(errors) """
-
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     
-    obj = Order.objects.create(
+    order = Order.objects.create(
         firstname=serializer.validated_data['firstname'],
         lastname=serializer.validated_data['lastname'],
         phonenumber=serializer.validated_data['phonenumber'],
         address=serializer.validated_data['address']
     )
 
-    for product in serializer.validated_data['products']:
-        OrderedProduct.objects.create(
-            order = obj,
-            product = Product.objects.get(id=product['product']),
-            quantity = product['quantity'],
-        )
+    product_fields = serializer.validated_data['products']
+    OrderedProduct.objects.bulk_create([OrderedProduct(order=order, **fields) for fields in product_fields])
 
-    return Response(serializer.validated_data)
+    return JsonResponse({})
