@@ -19,11 +19,24 @@ class RestaurantMenuItemInline(admin.TabularInline):
 class OrderedProductInline(admin.TabularInline):
     model = OrderedProduct
 
+    fields = [
+        'product',
+        'quantity',
+        'cost'
+    ]
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderedProductInline,
+    ]
+
+    list_display = [
+        'id',
+        'firstname',
+        'lastname',
+        'phonenumber',
     ]
 
 

@@ -34,6 +34,7 @@ class OrderedProduct(models.Model):
     product = models.ForeignKey('Product', related_name='product', on_delete=models.CASCADE, verbose_name='продукт')
     order = models.ForeignKey('Order', related_name='order', on_delete=models.CASCADE, verbose_name='заказ')
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name='количество')
+    cost = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)], verbose_name='Стоимость')
 
     class Meta:
         verbose_name = 'продукт заказа'
