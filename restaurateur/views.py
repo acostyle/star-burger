@@ -95,8 +95,21 @@ def view_restaurants(request):
     })
 
 
+def serialize_order(order):
+    return {
+        'id': order.id,
+        'status': order.get_status_display,
+        'order_amount': order.total_cost,
+        'firstname': order.firstname,
+        'lastname': order.lastname,
+        'phonenumber': order.phonenumber,
+        'address': order.address,
+    }
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    orders = Order.objects.count_order_cost()
     return render(request, template_name='order_items.html', context={
-        'order_items': Order.objects.count_order_cost()
+        'order_items': [serialize_order(order) for order in orders]
     })
