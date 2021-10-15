@@ -15,11 +15,18 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    PROCESSED = 'processed'
+    UNPROCESSED = 'unprocessed'
+    ORDER_STATUS_CHOICES = [
+        (PROCESSED, 'Обработанный'),
+        (UNPROCESSED, 'Необработанный'),
+    ]
+
     firstname = models.CharField(max_length=64, verbose_name='имя')
     lastname = models.CharField(max_length=64, verbose_name='фамилия')
     phonenumber = PhoneNumberField(verbose_name='номер телефона')
     address = models.CharField(max_length=256, verbose_name='адрес доставки')
-
+    status = models.CharField(max_length=12, choices=ORDER_STATUS_CHOICES, default=UNPROCESSED, verbose_name='статус заказа')
     objects = OrderQuerySet.as_manager()
 
     class Meta:
