@@ -104,7 +104,8 @@ def serialize_order(order):
         'lastname': order.lastname,
         'phonenumber': order.phonenumber,
         'address': order.address,
-        'commentary': order.commentary
+        'commentary': order.commentary,
+        'payment_method': order.get_payment_method_display,
     }
 
 
