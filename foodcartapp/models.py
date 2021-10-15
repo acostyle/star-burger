@@ -27,6 +27,8 @@ class Order(models.Model):
     phonenumber = PhoneNumberField(verbose_name='номер телефона')
     address = models.CharField(max_length=256, verbose_name='адрес доставки')
     status = models.CharField(max_length=12, choices=ORDER_STATUS_CHOICES, default=UNPROCESSED, verbose_name='статус заказа')
+    commentary = models.CharField(max_length=256, blank=True, verbose_name='комментарий')
+
     objects = OrderQuerySet.as_manager()
 
     class Meta:
