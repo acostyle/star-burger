@@ -1,7 +1,11 @@
 from django.contrib import admin
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from star_burger import settings
 
 from .models import Order
 from .models import OrderedProduct
@@ -38,6 +42,18 @@ class OrderAdmin(admin.ModelAdmin):
         'lastname',
         'phonenumber',
     ]
+
+    def response_change(self, request, obj):
+        response = super(OrderAdmin, self).response_change(request, obj)
+        url = request.GET['next']
+        is_url_safe = url_has_allowed_host_and_scheme(
+            url,
+            allowed_hosts=settings.ALLOWED_HOSTS,
+        )
+        if "next" in request.GET and is_url_safe:
+            return HttpResponseRedirect(request.GET['next'])
+        else:
+            return response
 
 
 @admin.register(Restaurant)
