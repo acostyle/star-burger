@@ -2,10 +2,13 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+from geopy import distance
+from foodcartapp.location import fetch_coordinates
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
+from star_burger import settings
 from .models import Order
 from .models import OrderedProduct
 from .models import Product
@@ -105,5 +108,25 @@ def get_available_restaurants_with_products(order):
             if product_in_restaurants.product == order_product.product:
                 restaurants_with_needed_products.append(product_in_restaurants.restaurant)
     
-    return restaurants_with_needed_products
+    return calculate_distances_to_order(
+        restaurants_with_needed_products,
+        settings.YA_API_KEY,
+        order.address
+    )
+
+def calculate_distances_to_order(restaurants, ya_api_key, order_address):
+    order_lon, order_lat = fetch_coordinates(ya_api_key, order_address)
+    restaurants_with_order_distance = []
+    for restaurant in restaurants:
+        restaurant_lon, restaurant_lat = fetch_coordinates(ya_api_key, restaurant.address)
+        distance_between_restoraunt_and_order = distance.distance(
+            (order_lat, order_lon), (restaurant_lat, restaurant_lon),
+        ).km
+        restaurants_with_order_distance.append(
+            {
+                'restaurant': restaurant,
+                'order_distance': round(distance_between_restoraunt_and_order, 2),
+            }
+        )
+    return sorted(restaurants_with_order_distance, key=lambda restaurant: restaurant['order_distance'])
     
