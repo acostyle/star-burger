@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Product, Restaurant, Order
+from foodcartapp.views import get_available_restaurants_with_products
 
 
 class Login(forms.Form):
@@ -106,12 +107,13 @@ def serialize_order(order):
         'address': order.address,
         'commentary': order.commentary,
         'payment_method': order.get_payment_method_display,
+        'restaurants': get_available_restaurants_with_products(order),
     }
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.count_order_cost()
+    orders = Order.objects.prefetch_related('ordered_products__product__menu_items__restaurant').count_order_cost()
     return render(request, template_name='order_items.html', context={
         'order_items': [serialize_order(order) for order in orders]
     })
