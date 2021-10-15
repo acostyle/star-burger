@@ -9,6 +9,7 @@ from rest_framework.serializers import ModelSerializer
 from .models import Order
 from .models import OrderedProduct
 from .models import Product
+from .models import RestaurantMenuItem
 
 
 def banners_list_api(request):
@@ -93,3 +94,16 @@ def register_order(request):
     order_serializer = OrderSerializer(order)
 
     return Response(order_serializer.data)
+
+def get_available_restaurants_with_products(order):
+    products_in_restaurants = RestaurantMenuItem.objects.prefetch_related('restaurant', 'product').filter(availability=True)
+    order_products = order.ordered_products.all()
+
+    restaurants_with_needed_products = []
+    for order_product in order_products:
+        for product_in_restaurants in products_in_restaurants:
+            if product_in_restaurants.product == order_product.product:
+                restaurants_with_needed_products.append(product_in_restaurants.restaurant)
+    
+    return restaurants_with_needed_products
+    
