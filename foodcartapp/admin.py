@@ -23,11 +23,7 @@ class RestaurantMenuItemInline(admin.TabularInline):
 class OrderedProductInline(admin.TabularInline):
     model = OrderedProduct
 
-    fields = [
-        'product',
-        'quantity',
-        'cost'
-    ]
+    fields = ["product", "quantity", "cost"]
 
 
 @admin.register(Order)
@@ -37,15 +33,15 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     list_display = [
-        'id',
-        'firstname',
-        'lastname',
-        'phonenumber',
+        "id",
+        "firstname",
+        "lastname",
+        "phonenumber",
     ]
 
     def response_change(self, request, obj):
         response = super(OrderAdmin, self).response_change(request, obj)
-        url = request.GET.get('next')
+        url = request.GET.get("next")
         is_url_safe = url_has_allowed_host_and_scheme(
             url,
             allowed_hosts=settings.ALLOWED_HOSTS,
@@ -54,7 +50,7 @@ class OrderAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(url)
         else:
             return response
-    
+
     def save_model(self, request, obj, form, change):
         address = obj.address
         lon, lat = Place.fetch_coordinates(address)
@@ -66,91 +62,94 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
     search_fields = [
-        'name',
-        'address',
-        'contact_phone',
+        "name",
+        "address",
+        "contact_phone",
     ]
     list_display = [
-        'name',
-        'address',
-        'contact_phone',
+        "name",
+        "address",
+        "contact_phone",
     ]
-    inlines = [
-        RestaurantMenuItemInline
-    ]
+    inlines = [RestaurantMenuItemInline]
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        'get_image_list_preview',
-        'name',
-        'category',
-        'price',
+        "get_image_list_preview",
+        "name",
+        "category",
+        "price",
     ]
     list_display_links = [
-        'name',
+        "name",
     ]
     list_filter = [
-        'category',
+        "category",
     ]
     search_fields = [
         # FIXME SQLite can not convert letter case for cyrillic words properly, so search will be buggy.
         # Migration to PostgreSQL is necessary
-        'name',
-        'category__name',
+        "name",
+        "category__name",
     ]
 
-    inlines = [
-        RestaurantMenuItemInline
-    ]
+    inlines = [RestaurantMenuItemInline]
     fieldsets = (
-        ('Общее', {
-            'fields': [
-                'name',
-                'category',
-                'image',
-                'get_image_preview',
-                'price',
-            ]
-        }),
-        ('Подробно', {
-            'fields': [
-                'special_status',
-                'description',
-            ],
-            'classes': [
-                'wide'
-            ],
-        }),
+        (
+            "Общее",
+            {
+                "fields": [
+                    "name",
+                    "category",
+                    "image",
+                    "get_image_preview",
+                    "price",
+                ]
+            },
+        ),
+        (
+            "Подробно",
+            {
+                "fields": [
+                    "special_status",
+                    "description",
+                ],
+                "classes": ["wide"],
+            },
+        ),
     )
 
     readonly_fields = [
-        'get_image_preview',
+        "get_image_preview",
     ]
 
     class Media:
-        css = {
-            "all": (
-                static("admin/foodcartapp.css")
-            )
-        }
+        css = {"all": (static("admin/foodcartapp.css"))}
 
     def get_image_preview(self, obj):
         if not obj.image:
-            return 'выберите картинку'
-        return format_html('<img src="{url}" style="max-height: 200px;"/>', url=obj.image.url)
-    get_image_preview.short_description = 'превью'
+            return "выберите картинку"
+        return format_html(
+            '<img src="{url}" style="max-height: 200px;"/>', url=obj.image.url
+        )
+
+    get_image_preview.short_description = "превью"
 
     def get_image_list_preview(self, obj):
         if not obj.image or not obj.id:
-            return 'нет картинки'
-        edit_url = reverse('admin:foodcartapp_product_change', args=(obj.id,))
-        return format_html('<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>', edit_url=edit_url, src=obj.image.url)
-    get_image_list_preview.short_description = 'превью'
+            return "нет картинки"
+        edit_url = reverse("admin:foodcartapp_product_change", args=(obj.id,))
+        return format_html(
+            '<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>',
+            edit_url=edit_url,
+            src=obj.image.url,
+        )
+
+    get_image_list_preview.short_description = "превью"
 
 
 @admin.register(ProductCategory)
 class ProductAdmin(admin.ModelAdmin):
     pass
-
