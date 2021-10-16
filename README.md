@@ -21,7 +21,7 @@
 
 Скачайте код:
 ```sh
-git clone https://github.com/devmanorg/star-burger.git
+git clone https://github.com/acostyle/star-burger.git
 ```
 
 Перейдите в каталог проекта:
@@ -143,4 +143,5 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте. Не стоит использовать значение по-умолчанию, **замените на своё**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+- `YA_API_KEY` – ключ от Yandex geocoder API
 
