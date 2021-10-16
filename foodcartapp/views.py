@@ -3,12 +3,11 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 
 from geopy import distance
-from foodcartapp.location import fetch_coordinates
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
-from star_burger import settings
+from places.models import Place
 from .models import Order
 from .models import OrderedProduct
 from .models import Product
@@ -98,6 +97,19 @@ def register_order(request):
 
     return Response(order_serializer.data)
 
+def get_place(address):
+    place, is_created = Place.objects.get_or_create(address=address)
+    if not is_created:
+        return place
+
+    lon, lat = Place.fetch_coordinates(address)
+    place.lon = lon
+    place.lat = lat
+    place.save()
+
+    return place
+
+
 def get_available_restaurants_with_products(order):
     products_in_restaurants = RestaurantMenuItem.objects.prefetch_related('restaurant', 'product').filter(availability=True)
     order_products = order.ordered_products.all()
@@ -110,22 +122,21 @@ def get_available_restaurants_with_products(order):
     
     return calculate_distances_to_order(
         restaurants_with_needed_products,
-        settings.YA_API_KEY,
         order.address
     )
 
-def calculate_distances_to_order(restaurants, ya_api_key, order_address):
-    order_lon, order_lat = fetch_coordinates(ya_api_key, order_address)
+def calculate_distances_to_order(restaurants, order_address):
+    order_place = get_place(order_address)
     restaurants_with_order_distance = []
     for restaurant in restaurants:
-        restaurant_lon, restaurant_lat = fetch_coordinates(ya_api_key, restaurant.address)
-        distance_between_restoraunt_and_order = distance.distance(
-            (order_lat, order_lon), (restaurant_lat, restaurant_lon),
+        restaurant_place = get_place(restaurant.address)
+        distance_between_restauraunt_and_order = distance.distance(
+            (order_place.lat, order_place.lon), (restaurant_place.lat, restaurant_place.lon),
         ).km
         restaurants_with_order_distance.append(
             {
                 'restaurant': restaurant,
-                'order_distance': round(distance_between_restoraunt_and_order, 2),
+                'order_distance': round(distance_between_restauraunt_and_order, 2),
             }
         )
     return sorted(restaurants_with_order_distance, key=lambda restaurant: restaurant['order_distance'])

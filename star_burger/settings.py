@@ -20,6 +20,7 @@ YA_API_KEY = env('YA_API_KEY')
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
+    'places.apps.PlacesConfig',
     'restaurateur.apps.RestaurateurConfig',
     'django.contrib.admin',
     'django.contrib.auth',
