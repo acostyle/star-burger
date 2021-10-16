@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from star_burger import settings
-
+from places.models import Place
 from .models import Order
 from .models import OrderedProduct
 from .models import Product
@@ -45,15 +45,22 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         response = super(OrderAdmin, self).response_change(request, obj)
-        url = request.GET['next']
+        url = request.GET.get('next')
         is_url_safe = url_has_allowed_host_and_scheme(
             url,
             allowed_hosts=settings.ALLOWED_HOSTS,
         )
         if "next" in request.GET and is_url_safe:
-            return HttpResponseRedirect(request.GET['next'])
+            return HttpResponseRedirect(url)
         else:
             return response
+    
+    def save_model(self, request, obj, form, change):
+        address = obj.address
+        lon, lat = Place.fetch_coordinates(address)
+        Place.objects.get_or_create(address=address, lat=lat, lon=lon)
+
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Restaurant)
@@ -146,3 +153,4 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(ProductCategory)
 class ProductAdmin(admin.ModelAdmin):
     pass
+
