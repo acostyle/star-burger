@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
+from django.db.models.fields import NOT_PROVIDED
 from django.utils import timezone
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -34,8 +35,6 @@ class OrderedProduct(models.Model):
     cost = models.DecimalField(
         max_digits=8,
         decimal_places=2,
-        null=True,
-        blank=True,
         validators=[MinValueValidator(0)],
         verbose_name="Стоимость",
     )
@@ -157,35 +156,47 @@ class Order(models.Model):
 
     CASH = "cash"
     CARD = "card"
-    ORDER_PAYMENT_METHOD_CHOICES = [(CASH, "Наличные"), (CARD, "Карта")]
+    NOT_SPECIFIED = "not specified"
+    ORDER_PAYMENT_METHOD_CHOICES = [
+        (CASH, "Наличные"),
+        (CARD, "Карта"),
+        (NOT_SPECIFIED, "Не указано")
+    ]
 
     firstname = models.CharField(max_length=64, verbose_name="имя")
     lastname = models.CharField(max_length=64, verbose_name="фамилия")
-    phonenumber = PhoneNumberField(verbose_name="номер телефона")
+    phonenumber = PhoneNumberField(db_index=True, verbose_name="номер телефона")
     address = models.CharField(max_length=256, verbose_name="адрес доставки")
 
     status = models.CharField(
         max_length=12,
         choices=ORDER_STATUS_CHOICES,
         default=UNPROCESSED,
+        db_index=True,
         verbose_name="статус заказа",
     )
-    commentary = models.CharField(
-        max_length=256, blank=True, verbose_name="комментарий"
+    commentary = models.TextField(
+        blank=True, verbose_name="комментарий"
     )
     payment_method = models.CharField(
-        max_length=4,
+        max_length=16,
         choices=ORDER_PAYMENT_METHOD_CHOICES,
-        default=CASH,
-        verbose_name="способ оплаты",
+        default=NOT_SPECIFIED,
+        db_index=True,
+        verbose_name="способ оплаты",    
     )
 
     registrated_at = models.DateTimeField(
-        default=timezone.now, verbose_name="дата регистрации"
+        db_index=True, default=timezone.now, verbose_name="дата регистрации"
     )
-    called_at = models.DateTimeField(null=True, blank=True, verbose_name="дата звонка")
+    called_at = models.DateTimeField(
+        db_index=True, 
+        null=True, 
+        blank=True, 
+        verbose_name="дата звонка"
+    )
     delivered_at = models.DateTimeField(
-        null=True, blank=True, verbose_name="дата доставки"
+        db_index=True, null=True, blank=True, verbose_name="дата доставки"
     )
 
     restaurant = models.ForeignKey(
