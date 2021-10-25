@@ -232,4 +232,4 @@ class Order(models.Model):
         verbose_name_plural = "заказы клиентов"
 
     def __str__(self):
-        return f"{self.firstname} {self.address}"
+        return '{0} {1}'.format(self.firstname, self.address)
