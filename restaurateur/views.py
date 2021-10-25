@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.query import Prefetch
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -129,8 +130,13 @@ def serialize_order(order):
 @user_passes_test(is_manager, login_url="restaurateur:login")
 def view_orders(request):
     orders = Order.objects.prefetch_related(
-        "ordered_products__product__menu_items__restaurant"
-    ).count_order_cost()
+            'order_products__product'
+        )\
+        .get_not_excluded_orders()\
+        .count_order_cost()\
+        .annotate_with_coordinates()\
+        .order_by('-id')
+        
     return render(
         request,
         template_name="order_items.html",

@@ -104,12 +104,12 @@ def register_order(request):
     return Response(order_serializer.data)
 
 
-def get_place(address):
+def get_place_from_coordinates(address):
     place, is_created = Place.objects.get_or_create(address=address)
     if not is_created:
         return place
 
-    lon, lat = Place.fetch_coordinates(address)
+    lon, lat = address.fetch_coordinates()
     place.lon = lon
     place.lat = lat
     place.save()
@@ -118,9 +118,9 @@ def get_place(address):
 
 
 def get_available_restaurants_with_products(order):
-    products_in_restaurants = RestaurantMenuItem.objects.prefetch_related(
+    products_in_restaurants = RestaurantMenuItem.objects.select_related(
         "restaurant", "product"
-    ).filter(availability=True)
+    ).filter(availability=True).annotate_with_coordinates()
     order_products = order.ordered_products.all()
 
     restaurants_with_needed_products = []
@@ -128,17 +128,19 @@ def get_available_restaurants_with_products(order):
         for product_in_restaurants in products_in_restaurants:
             if product_in_restaurants.product == order_product.product:
                 restaurants_with_needed_products.append(
-                    product_in_restaurants.restaurant
+                    product_in_restaurants.restaurant,
+                    product_in_restaurants.lon,
+                    product_in_restaurants.lat
                 )
 
     return calculate_distances_to_order(restaurants_with_needed_products, order.address)
 
 
 def calculate_distances_to_order(restaurants, order_address):
-    order_place = get_place(order_address)
+    order_place = get_place_from_coordinates(order_address)
     restaurants_with_order_distance = []
     for restaurant in restaurants:
-        restaurant_place = get_place(restaurant.address)
+        restaurant_place = get_place_from_coordinates(restaurant.address)
         distance_between_restauraunt_and_order = distance.distance(
             (order_place.lat, order_place.lon),
             (restaurant_place.lat, restaurant_place.lon),

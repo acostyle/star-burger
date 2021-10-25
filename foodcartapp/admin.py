@@ -40,16 +40,20 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     def response_change(self, request, obj):
-        response = super(OrderAdmin, self).response_change(request, obj)
+        response = super().response_change(request, obj)
         url = request.GET.get("next")
+
+        if not url:
+            return response
+        
         is_url_safe = url_has_allowed_host_and_scheme(
             url,
             allowed_hosts=settings.ALLOWED_HOSTS,
         )
         if "next" in request.GET and is_url_safe:
             return HttpResponseRedirect(url)
-        else:
-            return response
+        
+        return response
 
     def save_model(self, request, obj, form, change):
         address = obj.address
