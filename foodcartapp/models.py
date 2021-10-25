@@ -1,10 +1,12 @@
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
-from django.db.models.fields import NOT_PROVIDED
+from django.db.models.expressions import OuterRef, Subquery
 from django.utils import timezone
 
 from phonenumber_field.modelfields import PhoneNumberField
+
+from places.models import Place
 
 
 class OrderQuerySet(models.QuerySet):
@@ -12,6 +14,21 @@ class OrderQuerySet(models.QuerySet):
         return self.annotate(
             total_cost=Sum(
                 F("ordered_products__product__price") * F("ordered_products__quantity"),
+            )
+        )
+    
+    def get_not_excluded_orders(self):
+        orders = self.exclude(status='CLOSED')
+        return orders
+    
+    def annotate_with_coordinates(self):
+        place = Place.objects.filter(address=OuterRef('address'))
+        return self.annotate(
+            lon=Subquery(
+                place.values('lon')
+            ),
+            lat=Subquery(
+                place.values('lat')
             )
         )
 
