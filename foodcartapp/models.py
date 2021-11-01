@@ -17,7 +17,7 @@ class OrderQuerySet(models.QuerySet):
             )
         )
     
-    def get_not_excluded_orders(self):
+    def receive_orders_in_processing(self):
         orders = self.exclude(status='CLOSED')
         return orders
     

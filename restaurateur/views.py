@@ -132,7 +132,7 @@ def view_orders(request):
     orders = Order.objects.prefetch_related(
             'order_products__product'
         )\
-        .get_not_excluded_orders()\
+        .receive_orders_in_processing()\
         .count_order_cost()\
         .annotate_with_coordinates()\
         .order_by('-id')
