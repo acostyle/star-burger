@@ -1,5 +1,4 @@
 from django import forms
-from django.db.models.query import Prefetch
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -10,39 +9,39 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Product, Restaurant, Order
-from foodcartapp.views import get_available_restaurants_with_products
+from foodcartapp.views import get_available_restaurants_coords_with_needed_products
 
 
 class Login(forms.Form):
     username = forms.CharField(
-        label="Логин",
-        max_length=75,
-        required=True,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Укажите имя пользователя"}
-        ),
+        label='Логин', max_length=75, required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Укажите имя пользователя'
+        })
     )
     password = forms.CharField(
-        label="Пароль",
-        max_length=75,
-        required=True,
-        widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Введите пароль"}
-        ),
+        label='Пароль', max_length=75, required=True,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Введите пароль'
+        })
     )
 
 
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         form = Login()
-        return render(request, "login.html", context={"form": form})
+        return render(request, "login.html", context={
+            'form': form
+        })
 
     def post(self, request):
         form = Login(request.POST)
 
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
 
             user = authenticate(request, username=username, password=password)
             if user:
@@ -51,28 +50,24 @@ class LoginView(View):
                     return redirect("restaurateur:RestaurantView")
                 return redirect("start_page")
 
-        return render(
-            request,
-            "login.html",
-            context={
-                "form": form,
-                "ivalid": True,
-            },
-        )
+        return render(request, "login.html", context={
+            'form': form,
+            'ivalid': True,
+        })
 
 
 class LogoutView(auth_views.LogoutView):
-    next_page = reverse_lazy("restaurateur:login")
+    next_page = reverse_lazy('restaurateur:login')
 
 
 def is_manager(user):
     return user.is_staff  # FIXME replace with specific permission
 
 
-@user_passes_test(is_manager, login_url="restaurateur:login")
+@user_passes_test(is_manager, login_url='restaurateur:login')
 def view_products(request):
-    restaurants = list(Restaurant.objects.order_by("name"))
-    products = list(Product.objects.prefetch_related("menu_items"))
+    restaurants = list(Restaurant.objects.order_by('name'))
+    products = list(Product.objects.prefetch_related('menu_items'))
 
     default_availability = {restaurant.id: False for restaurant in restaurants}
     products_with_restaurants = []
@@ -80,65 +75,49 @@ def view_products(request):
 
         availability = {
             **default_availability,
-            **{
-                item.restaurant_id: item.availability
-                for item in product.menu_items.all()
-            },
+            **{item.restaurant_id: item.availability for item in product.menu_items.all()},
         }
-        orderer_availability = [
-            availability[restaurant.id] for restaurant in restaurants
-        ]
+        orderer_availability = [availability[restaurant.id] for restaurant in restaurants]
 
-        products_with_restaurants.append((product, orderer_availability))
+        products_with_restaurants.append(
+            (product, orderer_availability)
+        )
 
-    return render(
-        request,
-        template_name="products_list.html",
-        context={
-            "products_with_restaurants": products_with_restaurants,
-            "restaurants": restaurants,
-        },
-    )
+    return render(request, template_name="products_list.html", context={
+        'products_with_restaurants': products_with_restaurants,
+        'restaurants': restaurants,
+    })
 
 
-@user_passes_test(is_manager, login_url="restaurateur:login")
+@user_passes_test(is_manager, login_url='restaurateur:login')
 def view_restaurants(request):
-    return render(
-        request,
-        template_name="restaurants_list.html",
-        context={
-            "restaurants": Restaurant.objects.all(),
-        },
-    )
+    return render(request, template_name="restaurants_list.html", context={
+        'restaurants': Restaurant.objects.all(),
+    })
 
 
 def serialize_order(order):
     return {
-        "id": order.id,
-        "status": order.get_status_display,
-        "order_amount": order.total_cost,
-        "firstname": order.firstname,
-        "lastname": order.lastname,
-        "phonenumber": order.phonenumber,
-        "address": order.address,
-        "commentary": order.commentary,
-        "payment_method": order.get_payment_method_display,
-        "restaurants": get_available_restaurants_with_products(order),
+        'id': order.id,
+        'status': order.get_status_display,
+        'order_price': order.total_cost,
+        'firstname': order.firstname,
+        'lastname': order.lastname,
+        'phonenumber': order.phonenumber,
+        'address': order.address,
+        'commentary': order.commentary,
+        'payment_method': order.get_payment_method_display,
+        'restaurants': get_available_restaurants_coords_with_needed_products(order),
     }
 
 
-@user_passes_test(is_manager, login_url="restaurateur:login")
+@user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.prefetch_related(
-            'order_products__product'
-        )\
-        .receive_orders_in_processing()\
+    orders = Order.objects.prefetch_related('ordered_products__product')\
         .count_order_cost()\
+        .receive_orders_in_processing()\
         .annotate_with_coordinates()\
         .order_by('-id')
-        
-    return render(
-        request,
-        template_name="order_items.html",
-        context={"order_items": [serialize_order(order) for order in orders]},
-    )
+    return render(request, template_name='order_items.html', context={
+        'order_items': [serialize_order(order) for order in orders]
+    })

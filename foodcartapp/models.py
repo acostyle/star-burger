@@ -9,6 +9,23 @@ from phonenumber_field.modelfields import PhoneNumberField
 from places.models import Place
 
 
+class RestaurantMenuItemQuerySet(models.QuerySet):
+    def get_products_in_restaurants(self):
+        return self.prefetch_related('restaurant', 'product').filter(availability=True)
+
+
+    def annotate_with_coordinates(self):
+        place = Place.objects.filter(address=OuterRef('restaurant__address'))
+        return self.annotate(
+            restaurant_lon=Subquery(
+                place.values('lon')
+            ),
+            restaurant_lat=Subquery(
+                place.values('lat')
+            ),
+        )
+
+
 class OrderQuerySet(models.QuerySet):
     def count_order_cost(self):
         return self.annotate(
@@ -63,7 +80,11 @@ class OrderedProduct(models.Model):
         verbose_name_plural = "продукт заказов"
 
     def __str__(self):
-        return f"{self.product.name} {self.quantity} {self.order}"
+        return "{0} {1} {2}".format(
+            self.product.name,
+            self.quantity,
+            self.order,
+        )
 
 
 class Restaurant(models.Model):
@@ -155,14 +176,21 @@ class RestaurantMenuItem(models.Model):
         verbose_name="продукт",
     )
     availability = models.BooleanField("в продаже", default=True, db_index=True)
+    
+    objects = RestaurantMenuItemQuerySet.as_manager()
 
     class Meta:
         verbose_name = "пункт меню ресторана"
         verbose_name_plural = "пункты меню ресторана"
-        unique_together = [["restaurant", "product"]]
+        unique_together = [
+            ["restaurant", "product"]
+        ]
 
     def __str__(self):
-        return f"{self.restaurant.name} - {self.product.name}"
+        return "{0} - {1}".format(
+            self.restaurant.name,
+            self.product.name,
+        )
 
 
 class Order(models.Model):
