@@ -99,15 +99,17 @@ def register_order(request):
 
 
 def get_place_from_coordinates(address, lat, lon):
-    if not lat and not lon:
+    if lat is not None and lon is not None:
         return Place(lat=lat, lon=lon)
 
     coordinates = Place.fetch_coordinates(address)
+    if coordinates is None:
+        return None
 
     place, is_created = Place.objects.get_or_create(
         address=address,
-        lat=coordinates.lat,
-        lon=coordinates.lon,
+        lat=coordinates.latitude,
+        lon=coordinates.longitude,
     )
 
     return Place(lat=place.lat, lon=place.lon)

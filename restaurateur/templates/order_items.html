@@ -42,7 +42,7 @@
                 {% if restaurant.order_distance %}
                   <li>{{ restaurant.restaurant }} – {{ restaurant.order_distance }} км</li>
                 {% else %}
-                  <li>Нет данных</li>
+                  <li>{{ restaurant.restaurant }}</li>
                 {% endif %}
               {% endfor %}
           </details>
