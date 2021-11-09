@@ -67,8 +67,6 @@ class OrderedProduct(models.Model):
         validators=[MinValueValidator(1)], verbose_name="количество"
     )
     cost = models.DecimalField(
-        blank=True,
-        null=True,
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)],

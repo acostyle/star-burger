@@ -108,8 +108,8 @@ def get_place_from_coordinates(address, lat, lon):
 
     place, is_created = Place.objects.get_or_create(
         address=address,
-        lat=coordinates.latitude,
-        lon=coordinates.longitude,
+        lat=coordinates.lat,
+        lon=coordinates.lon,
     )
 
     return Place(lat=place.lat, lon=place.lon)
