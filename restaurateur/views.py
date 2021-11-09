@@ -9,7 +9,7 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Product, Restaurant, Order
-from foodcartapp.views import get_available_restaurants_coords_with_needed_products
+from foodcartapp.selectors import get_restaurants_with_products_from_order
 
 
 class Login(forms.Form):
@@ -96,7 +96,7 @@ def view_restaurants(request):
     })
 
 
-def serialize_order(order):
+def serialize_order(order, restaurants):
     return {
         'id': order.id,
         'status': order.get_status_display,
@@ -107,7 +107,7 @@ def serialize_order(order):
         'address': order.address,
         'commentary': order.commentary,
         'payment_method': order.get_payment_method_display,
-        'restaurants': get_available_restaurants_coords_with_needed_products(order),
+        'restaurants': restaurants,
     }
 
 
@@ -119,5 +119,9 @@ def view_orders(request):
         .annotate_with_coordinates()\
         .order_by('-id')
     return render(request, template_name='order_items.html', context={
-        'order_items': [serialize_order(order) for order in orders]
+        'order_items': [serialize_order(
+            order, get_restaurants_with_products_from_order(order)
+        ) 
+        for order in orders
+        ]
     })
