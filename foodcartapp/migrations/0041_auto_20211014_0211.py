@@ -5,12 +5,12 @@ from django.db import migrations
 
 def count_cost_for_old_orders(apps, schema_editor):
     OrderedProduct = apps.get_model('foodcartapp', 'OrderedProduct')
+    ordered_products = OrderedProduct.objects.all().iterator()
+    for ordered_product in ordered_products:
+        if not ordered_product:
+            ordered_product.cost = ordered_product.product.price * ordered_products.quantity
+            ordered_product.save()
 
-    ordered_products = OrderedProduct.objects.filter(cost=0).prefetch_related('product')
-
-    for ordered_product in ordered_products.iterator():
-        ordered_product.price = ordered_product.quantity * ordered_product.product.price
-        ordered_product.save()
 
 
 class Migration(migrations.Migration):

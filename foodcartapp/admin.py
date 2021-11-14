@@ -58,10 +58,12 @@ class OrderAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         address = obj.address
         coordinates = Place.fetch_coordinates(address)
+        coordinates_lat = coordinates[0]
+        coordinates_lon = coordinates[1]
         Place.objects.get_or_create(
             address=address,
-            lat=coordinates.lat,
-            lon=coordinates.lon,
+            lat=coordinates_lat,
+            lon=coordinates_lon,
         )
 
         super().save_model(request, obj, form, change)

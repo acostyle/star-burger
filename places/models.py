@@ -21,7 +21,7 @@ class Place(models.Model):
     def __str__(self):
         return self.address
 
-
+    @staticmethod
     def fetch_coordinates(address):
         base_url = "https://geocode-maps.yandex.ru/1.x"
         response = requests.get(base_url, params={
@@ -38,4 +38,4 @@ class Place(models.Model):
         most_relevant = found_places[0]
         lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
 
-        return Place(lat=lat, lon=lon)
+        return lon, lat

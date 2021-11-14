@@ -30,7 +30,7 @@ class OrderQuerySet(models.QuerySet):
     def count_order_cost(self):
         return self.annotate(
             total_cost=Sum(
-                F("ordered_products__product__price") * F("ordered_products__quantity"),
+                F("ordered_products__cost"),
             )
         )
     
