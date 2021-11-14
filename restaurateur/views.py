@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-from foodcartapp.models import Product, Restaurant, Order
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 from foodcartapp.selectors import get_restaurants_with_products_from_order
 
 
@@ -117,11 +117,15 @@ def view_orders(request):
         .receive_orders_in_processing()\
         .annotate_with_coordinates()\
         .order_by('-id')
+    
+    products_in_restaurants = RestaurantMenuItem.objects\
+        .get_products_in_restaurants()\
+        .annotate_with_coordinates()
 
     return render(request, template_name='order_items.html', context={
         'order_items': [
             serialize_order(
-                order, get_restaurants_with_products_from_order(order)
+                order, get_restaurants_with_products_from_order(order, products_in_restaurants)
             )
             for order in orders
         ]

@@ -1,7 +1,6 @@
 from geopy import distance
 
 from places.models import Place
-from .models import RestaurantMenuItem
 
 
 def get_place_coordinates(address):
@@ -19,19 +18,16 @@ def get_place_coordinates(address):
     return place
 
 
-def get_restaurants_with_products_from_order(order):
-    products_in_restaurants = RestaurantMenuItem.objects.get_products_in_restaurants().annotate_with_coordinates()
+def get_restaurants_with_products_from_order(order, products_in_restaurants):
     order_products = order.ordered_products.all()
 
     restaurants_with_needed_products = []
     for order_product in order_products:
-        restaurants_with_needed_products.append(
-            [
-                product_in_restaurants.restaurant
-                for product_in_restaurants in products_in_restaurants
-                if product_in_restaurants.product == order_product.product
-            ]
-        )
+        for product_in_restaurants in products_in_restaurants:
+            if product_in_restaurants.product == order_product.product:
+                restaurants_with_needed_products.append(
+                    product_in_restaurants.restaurant      
+                )
                 
     
     return calculate_distances_to_order(
