@@ -13,7 +13,6 @@ class RestaurantMenuItemQuerySet(models.QuerySet):
     def get_products_in_restaurants(self):
         return self.select_related('restaurant', 'product').filter(availability=True)
 
-
     def annotate_with_coordinates(self):
         place = Place.objects.filter(address=OuterRef('restaurant__address'))
         return self.annotate(
