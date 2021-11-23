@@ -8,7 +8,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
-from foodcartapp.selectors import get_restaurants_with_products_from_order
+from foodcartapp.selectors import get_restaurants_with_distance
+from places.models import Place
 
 
 class Login(forms.Form):
@@ -117,15 +118,21 @@ def view_orders(request):
         .receive_orders_in_processing()\
         .annotate_with_coordinates()\
         .order_by('-id')
-    
+
     products_in_restaurants = RestaurantMenuItem.objects\
         .get_products_in_restaurants()\
         .annotate_with_coordinates()
 
+    places = Place.objects.all()
+
     return render(request, template_name='order_items.html', context={
         'order_items': [
             serialize_order(
-                order, get_restaurants_with_products_from_order(order, products_in_restaurants)
+                order, get_restaurants_with_distance(
+                    order,
+                    products_in_restaurants,
+                    places,
+                )
             )
             for order in orders
         ]

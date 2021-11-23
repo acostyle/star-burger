@@ -1,76 +1,70 @@
-from geopy import distance
+from geopy.distance import geodesic
 
 from places.models import Place
 
 
-def get_place_coordinates(address, lat, lon):
-    if lat is not None and lon is not None:
-        return Place(address=address, lat=lat, lon=lon)
-
-    coordinates = Place.fetch_coordinates(address)
-    if coordinates is None:
-        return None
-        
-    longitude, latitude = coordinates
-    place, is_created = Place.objects.get_or_create(
-        address=address,
-        lon=longitude,
-        lat=latitude,
-    )
-
-    return place
+def get_coordinates(address, places):
+    for place in places:
+        if place.address == address:
+            return place.lon, place.lat
+    else:
+        return Place.fetch_coordinates(address)
 
 
-def get_restaurants_with_products_from_order(order, products_in_restaurants):
-    order_products = order.ordered_products.all()
+def get_available_restaurants(order, products_in_restaurants):
+    ordered_products = order.ordered_products.all()
 
-    restaurants_with_needed_products = []
-    for order_product in order_products:
-        for product_in_restaurants in products_in_restaurants:
-            if product_in_restaurants.product == order_product.product:
-                restaurants_with_needed_products.append(
-                    [
-                        product_in_restaurants.restaurant,
-                        product_in_restaurants.restaurant_lat,
-                        product_in_restaurants.restaurant_lon,
-                    ]
-                )
+    restaurants = []
+    available_restaurants = []
+    for ordered_product in ordered_products:
+        for product_in_restaurant in products_in_restaurants:
+            if product_in_restaurant.product == ordered_product.product:
+                restaurants.append(product_in_restaurant.restaurant)
     
-    return calculate_distances_to_order(
-        order_address=order.address,
-        order_lat=order.lat,
-        order_lon=order.lon,
-        restaurants=set(map(tuple, restaurants_with_needed_products)),
-    )
+    available_restaurants = restaurants
+    available_restaurants = list(set(restaurants) & set(available_restaurants))
+
+    return available_restaurants
 
 
-def calculate_distances_to_order(order_address, order_lat, order_lon, restaurants):
-    order_place = get_place_coordinates(
-        address=order_address,
-        lat=order_lat,
-        lon=order_lon,
+def get_restaurants_with_distance(order, products_in_restaurants, places):
+    available_restaurants = get_available_restaurants(order, products_in_restaurants)
+
+    order_place = get_coordinates(
+        address=order.address,
+        places=places,
     )
 
     restaurants_with_order_distance = []
-    for restaurant, restaurant_lat, restaurant_lon in restaurants:
-        restaurant_place = get_place_coordinates(
+    for restaurant in available_restaurants:
+        restaurant_place = get_coordinates(
             address=restaurant.address,
-            lat=restaurant_lat,
-            lon=restaurant_lon,
+            places=places,
         )
-        if order_place is None or restaurant_place is None:
-            distance_between_restauraunt_and_order = 0
+        restaurant_place_lon, restaurant_place_lat = restaurant_place
+        
+        if order_place is not None:
+            order_place_lon, order_place_lat = order_place
+            distance_between_restauraunt_and_order = round(
+                geodesic(
+                    (order_place_lon, order_place_lat),
+                    (restaurant_place_lon, restaurant_place_lat),
+                ).km,
+            2)
         else:
-            distance_between_restauraunt_and_order = distance.distance(
-                (order_place.lat, order_place.lon), (restaurant_place.lat, restaurant_place.lon),
-            ).km
+            distance_between_restauraunt_and_order = None
 
         restaurants_with_order_distance.append(
             {
                 'restaurant': restaurant,
-                'order_distance': round(distance_between_restauraunt_and_order, 2),
+                'order_distance': distance_between_restauraunt_and_order
             }
         )
 
-    return sorted(restaurants_with_order_distance, key=lambda restaurant: restaurant['order_distance'])
+    return sorted(
+        restaurants_with_order_distance, key=lambda restaurant: (
+            restaurant['order_distance'] is None,
+            restaurant['order_distance']
+        )
+    )
     
