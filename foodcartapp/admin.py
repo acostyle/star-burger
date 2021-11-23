@@ -6,7 +6,6 @@ from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from star_burger import settings
-from places.models import Place
 from .models import Order
 from .models import OrderedProduct
 from .models import Product
@@ -52,21 +51,8 @@ class OrderAdmin(admin.ModelAdmin):
         )
         if "next" in request.GET and is_url_safe:
             return HttpResponseRedirect(url)
-        
+
         return response
-
-    def save_model(self, request, obj, form, change):
-        address = obj.address
-        coordinates = Place.fetch_coordinates(address)
-        coordinates_lat = coordinates[0]
-        coordinates_lon = coordinates[1]
-        Place.objects.get_or_create(
-            address=address,
-            lat=coordinates_lat,
-            lon=coordinates_lon,
-        )
-
-        super().save_model(request, obj, form, change)
 
 
 @admin.register(Restaurant)
