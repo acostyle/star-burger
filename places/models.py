@@ -37,5 +37,5 @@ class Place(models.Model):
 
         most_relevant = found_places[0]
         lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
-
+        Place.objects.create(address=address, lon=lon, lat=lat)
         return lon, lat
