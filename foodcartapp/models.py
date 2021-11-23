@@ -34,7 +34,7 @@ class OrderQuerySet(models.QuerySet):
         )
     
     def receive_orders_in_processing(self):
-        orders = self.exclude(status='CLOSED')
+        orders = self.exclude(status='processed')
         return orders
     
     def annotate_with_coordinates(self):
