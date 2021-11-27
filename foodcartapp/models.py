@@ -14,13 +14,13 @@ class RestaurantMenuItemQuerySet(models.QuerySet):
         return self.select_related('restaurant', 'product').filter(availability=True)
 
     def annotate_with_coordinates(self):
-        place = Place.objects.filter(address=OuterRef('restaurant__address'))
+        places = Place.objects.filter(address=OuterRef('restaurant__address'))
         return self.annotate(
             restaurant_lon=Subquery(
-                place.values('lon')
+                places.values('lon')
             ),
             restaurant_lat=Subquery(
-                place.values('lat')
+                places.values('lat')
             ),
         )
 
@@ -69,7 +69,7 @@ class OrderedProduct(models.Model):
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name="Стоимость",
+        verbose_name="общая стоимость",
     )
 
     class Meta:
@@ -77,11 +77,7 @@ class OrderedProduct(models.Model):
         verbose_name_plural = "продукт заказов"
 
     def __str__(self):
-        return "{0} {1} {2}".format(
-            self.product.name,
-            self.quantity,
-            self.order,
-        )
+        return f"{self.product.name} {self.quantity} {self.order}"
 
 
 class Restaurant(models.Model):
@@ -184,10 +180,7 @@ class RestaurantMenuItem(models.Model):
         ]
 
     def __str__(self):
-        return "{0} - {1}".format(
-            self.restaurant.name,
-            self.product.name,
-        )
+        return "{self.restaurant.name} - {self.product.name}"
 
 
 class Order(models.Model):
@@ -259,4 +252,4 @@ class Order(models.Model):
         verbose_name_plural = "заказы клиентов"
 
     def __str__(self):
-        return '{0} {1}'.format(self.firstname, self.address)
+        return '{self.firstname} {self.address}'

@@ -40,9 +40,9 @@
             <summary>Развернуть</summary>
               {% for restaurant in item.restaurants %}
                 {% if restaurant.order_distance %}
-                  <li>{{ restaurant.restaurant }} – {{ restaurant.order_distance }} км</li>
+                  <li>{{ restaurant }} – {{ restaurant.order_distance }} км</li>
                 {% else %}
-                  <li>{{ restaurant.restaurant }}</li>
+                  <li>{{ restaurant }}</li>
                 {% endif %}
               {% endfor %}
           </details>
