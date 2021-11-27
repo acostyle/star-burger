@@ -15,14 +15,15 @@ def get_available_restaurants(order, products_in_restaurants):
     ordered_products = order.ordered_products.all()
 
     restaurants = []
-    available_restaurants = []
     for ordered_product in ordered_products:
-        for product_in_restaurant in products_in_restaurants:
-            if product_in_restaurant.product == ordered_product.product:
-                restaurants.append(product_in_restaurant.restaurant)
+        restaurants_with_products = [
+            product_in_restaurant.restaurant
+            for product_in_restaurant in products_in_restaurants
+            if product_in_restaurant.product == ordered_product.product
+        ]
+        restaurants.append(set(restaurants_with_products))
     
-    available_restaurants = restaurants
-    available_restaurants = list(set(restaurants) & set(available_restaurants))
+    available_restaurants = set.intersection(*restaurants)
 
     return available_restaurants
 
@@ -35,7 +36,7 @@ def get_restaurants_with_distance(order, products_in_restaurants, places):
         places=places,
     )
 
-    restaurants_with_order_distance = []
+    #restaurants_with_order_distance = []
     for restaurant in available_restaurants:
         restaurant_place = get_coordinates(
             address=restaurant.address,
@@ -54,17 +55,18 @@ def get_restaurants_with_distance(order, products_in_restaurants, places):
         else:
             distance_between_restauraunt_and_order = None
 
-        restaurants_with_order_distance.append(
+        restaurant.order_distance = distance_between_restauraunt_and_order
+        """ restaurants_with_order_distance.append(
             {
                 'restaurant': restaurant,
                 'order_distance': distance_between_restauraunt_and_order
             }
-        )
+        ) """
 
     return sorted(
-        restaurants_with_order_distance, key=lambda restaurant: (
-            restaurant['order_distance'] is None,
-            restaurant['order_distance']
+        available_restaurants, key=lambda restaurant: (
+            restaurant.order_distance is None,
+            restaurant.order_distance
         )
     )
     
