@@ -36,7 +36,6 @@ def get_restaurants_with_distance(order, products_in_restaurants, places):
         places=places,
     )
 
-    #restaurants_with_order_distance = []
     for restaurant in available_restaurants:
         restaurant_place = get_coordinates(
             address=restaurant.address,
@@ -56,12 +55,6 @@ def get_restaurants_with_distance(order, products_in_restaurants, places):
             distance_between_restauraunt_and_order = None
 
         restaurant.order_distance = distance_between_restauraunt_and_order
-        """ restaurants_with_order_distance.append(
-            {
-                'restaurant': restaurant,
-                'order_distance': distance_between_restauraunt_and_order
-            }
-        ) """
 
     return sorted(
         available_restaurants, key=lambda restaurant: (
@@ -69,4 +62,3 @@ def get_restaurants_with_distance(order, products_in_restaurants, places):
             restaurant.order_distance
         )
     )
-    
