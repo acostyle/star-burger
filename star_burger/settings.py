@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
     'places.apps.PlacesConfig',
     'restaurateur.apps.RestaurateurConfig',
+    'banners.apps.BannersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
