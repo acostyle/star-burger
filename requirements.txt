@@ -5,6 +5,8 @@ environs[django]==9.3.2
 django-phonenumber-field==5.2.0
 djangorestframework==3.12.4
 geopy==2.2.0
+GitPython==3.1.24
 gunicorn==20.1.0
 phonenumbers==8.12.35
 requests==2.26.0
+rollbar==0.16.2

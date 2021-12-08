@@ -1,8 +1,9 @@
 import os
 
 import dj_database_url
-
+import rollbar
 from environs import Env
+from git import Repo
 
 
 env = Env()
@@ -17,6 +18,7 @@ DEBUG = env.bool('DEBUG', True)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 YA_API_KEY = env('YA_API_KEY')
+ROLLBAR_ACCESS_TOKEN = env.str('ROLLBAR_ACCESS_TOKEN')
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
@@ -43,7 +45,18 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
+
+ROLLBAR = {
+    'access_token': ROLLBAR_ACCESS_TOKEN,
+    'environment': env.str('ROLLBAR_ENVIRONMENT', default='development'),
+    'root': BASE_DIR,
+    'branch': Repo(path=BASE_DIR).active_branch.name,
+}
+
+rollbar.init(**ROLLBAR)
 
 ROOT_URLCONF = 'star_burger.urls'
 
