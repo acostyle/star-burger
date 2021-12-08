@@ -51,7 +51,7 @@ MIDDLEWARE = [
 
 ROLLBAR = {
     'access_token': ROLLBAR_ACCESS_TOKEN,
-    'environment': 'development' if DEBUG else 'production',
+    'environment': env.str('ROLLBAR_ENVIRONMENT', default='development'),
     'root': BASE_DIR,
     'branch': Repo(path=BASE_DIR).active_branch.name,
 }
