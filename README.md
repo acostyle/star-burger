@@ -133,6 +133,10 @@ Parcel будет следить за файлами в каталоге `bundle
 1. Зарегистрируйтесь в [Rollbar](https://rollbar.com/)
 2. В качестве SDK выберите Django
 
+## Как настроить PostgreSQL
+1. Перейдите на страницу [туториала](https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04) и выполните все инструкции из раздела **Create a Database and Database User**
+2. Далее добавьте нужные переменные окружения в `.env` из следующего раздела 
+
 ## Как запустить prod-версию сайта
 
 Собрать фронтенд:
@@ -149,3 +153,4 @@ parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 - `YA_API_KEY` – ключ от Yandex geocoder API
 - `ROLLBAR_ACCESS_TOKEN` – токен доступа к Rollbar API
 - `ROLLBAR_ENVIRONMENT` – название окружения Rollbar
+- `DB_URL` – URL для БД следующего вида: `postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}`
