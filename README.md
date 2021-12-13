@@ -137,6 +137,11 @@ Parcel будет следить за файлами в каталоге `bundle
 1. Перейдите на страницу [туториала](https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04) и выполните все инструкции из раздела **Create a Database and Database User**
 2. Далее добавьте нужные переменные окружения в `.env` из следующего раздела 
 
+## Координаты сервера
+- Ссылка: [acostyle.store](https://acostyle.store/)
+- IP: 138.197.184.204
+- Имя пользователя: `root` 
+
 ## Деплой
 В каталоге `/root/` лежит файл `deploy_star_burger.sh`. Его нужно запустить для установки всех комплектующих для запуска сайта. Он сам установит необходимые библиотеки, перезапустит сервисы и сделает миграции.
 
