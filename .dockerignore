@@ -1,0 +1,12 @@
+__pycache__
+.babelrc
+.editorconfig
+.parcel-cache
+.venv
+staticfiles/
+media/
+node_modules/
+deploy_starburger.sh
+Dockerfile
+docker-compose.yml
+README.md

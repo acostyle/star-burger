@@ -1,0 +1,13 @@
+FROM node:16.13.0-buster-slim
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY ["package.json", "package-lock.json*", "./"]
+
+RUN npm install && npm install -g parcel@2.0.0-beta.2
+
+COPY ["./bundles-src/", "./bundles-src/"]
+
+RUN parcel build bundles-src/index.js --dist-dir bundles --public-url="./"

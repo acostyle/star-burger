@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: starburger-db
+    image: postgres:14.0-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  frontend:
+    container_name: starburger-frontend
+    restart: always
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./:/app
+    build:
+      context: ./
+      dockerfile: dockerfiles/frontend/Dockerfile
+    command: parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+    depends_on:
+      - server
+
+  server:
+    container_name: starburger-server
+    restart: always
+    build:
+      context: .
+      dockerfile: ./dockerfiles/server/Dockerfile
+    command: python3 manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
