@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  server:
+    container_name: starburger-backend
+    build:
+        context: .
+        dockerfile: ./dockerfiles/server/Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    command: gunicorn star_burger.wsgi:application --bind 0.0.0.0:8080
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+
+  parcel:
+    container_name: starburger-parcel
+    build:
+        context: .
+        dockerfile: ./dockerfiles/frontend/Dockerfile
+    ports:
+      - "1234:1234"
+    command: parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+
+
+  db:
+    image: postgres:14.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+    ports:
+      - "5400:5432"
+    env_file:
+      - .env
+
+  nginx:
+    build: ./dockerfiles/nginx
+    restart: always
+    container_name: starburger-nginx
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - server
+
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
