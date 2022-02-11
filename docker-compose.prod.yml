@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     restart: always
     volumes:
-      - static_volume:/app/static
+      - static_volume:/app/staticfiles
       - ./media:/app/media
     command: gunicorn star_burger.wsgi:application --bind 0.0.0.0:8080
     env_file:
@@ -49,7 +49,7 @@ services:
     env_file:
       - .env
     volumes:
-      - static_volume:/app/static
+      - static_volume:/app/staticfiles
       - ./media:/app/media
     depends_on:
       - server
