@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY ["package.json", "package-lock.json*", "./"]
 
-RUN npm install && npm install -g parcel@2.0.0-beta.2
+RUN npm install --include=dev && npm install -g parcel@2.0.0-beta.2
 
 COPY ["./bundles-src/", "./bundles-src/"]
 
