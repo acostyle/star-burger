@@ -1,6 +1,4 @@
-FROM node:16.13.0-buster-slim
-
-RUN mkdir /app
+FROM node:alpine
 
 WORKDIR /app
 
